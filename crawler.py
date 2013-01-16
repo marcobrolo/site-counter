@@ -12,6 +12,7 @@ base = "http://www.ethanholmes.me/"
 core = "www.ethanholmes.me"
 #base = "http://www.cs.sfu.ca/"
 #core = "www.cs.sfu.ca"
+types = {}
 
 
 #TODO:  Use urllib2, check mime type, only open/read if it is html.
@@ -27,13 +28,22 @@ def read_page(url):
         #if usock.getcode() == 404:
         #    four04.append(url)
         #    return
-        except urllib2.HTTPError:
+        except urllib2.HTTPError as e:
             four04.append(url)
-            print('404', " : ", url)
+            print(e.code, " : ", url)
             return
         print (usock.getcode(), " : ", url)
         parser = lister.Lister()
-        parser.feed(usock.read())
+
+
+        print("info: ", usock.info().getheader('content-type'))
+        filetype = usock.info().getheader('content-type')
+        if filetype == 'text/html':
+            parser.feed(usock.read())
+        
+        if filetype not in types: types[filetype] = []
+
+        types[filetype].append(url)
         visited.append(url)
         usock.close()
         parser.close()
@@ -89,21 +99,15 @@ def filter_urls(p):
 def remove_dupes():
     """Removes duplicate elements from the internal, external and visited lists"""
     return list(set(internal)-set(visited)-set(four04)), list(set(external)), list(set(visited))
-#    
-#def report(e, v, f04):
-#    s = "Internal sites: %d\n" % len(v)
-#    s += "External sites: %d\n" % len(e)
-#    s += "404's: %d\n" % len(f04)
-#    s += "Total working links: %d\n" % (len(v)+len(e))
-#    return s
 
-def generate_reports(e, v, f04):
+def generate_reports(e, v, f04, t):
     f_external = open('external.txt', 'ab+')
     f_visited = open('visited.txt', 'ab+')
     f_report = open('report.txt', 'ab+')
 
     print(e, file=f_external)
     print(v, file=f_visited)
+    print(t)
 
     s = "Internal sites: %d\n" % len(v)
     s += "External sites: %d\n" % len(e)
@@ -130,7 +134,7 @@ if __name__ == "__main__":
         map(filter_urls, pages)
         internal, external, visited = remove_dupes()
         
-    generate_reports(external, visited, four04)
+    generate_reports(external, visited, four04, types)
 
     
     for url in internal:
