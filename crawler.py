@@ -8,11 +8,11 @@ visited = []
 external = []
 internal = []
 four04 = []
-base = "http://www.ethanholmes.me/"
-core = "www.ethanholmes.me"
-#base = "http://www.cs.sfu.ca/"
+#base = "http://www.ethanholmes.me/"
+#core = "www.ethanholmes.me"
+base = "http://www.cs.sfu.ca/"
 #base = "http://www.cs.sfu.ca/~stella/"
-#core = "cs.sfu.ca"
+core = "cs.sfu.ca"
 types = {}
 
 #TODO:
@@ -54,15 +54,18 @@ def read_page(url):
         return
 
 def local_url(url):
+    """ """
     cond = [(url.count('.') == 1) and url[0] == '/'] #Full URL's have at least 2
     cond.append(url[0] == '/' and url.count('.') == 0) #Filters out http links and javascript
     return True in cond
 
 def local_full_url(url):
+    """ """
     cond = [core in url] #Check if the full core of the url (cs.sfu.ca) is in the url
     return cond.count(False) == 0
 
 def strip_url(u):
+    """ """
     temp_url = u.split('#', 1)[0]
     temp_url = temp_url.split('?', 1)[0]
     if len(temp_url) > 3 and temp_url[0] == 'w' and temp_url[1] == 'w' and temp_url[2] == 'w':
@@ -99,8 +102,8 @@ def generate_reports(e, v, f04, t):
     print(v, file=f_visited)
 
     s = "Internal sites: %d\n" % len(v)
-    for k, v in t.iteritems():
-        s += "\t %s: %d\n" % (k, len(v))
+    for key, val in t.iteritems():
+        s += "\t %s: %d\n" % (key, len(val))
     s += "External sites: %d\n" % len(e)
     s += "404's: %d\n" % len(f04)
     s += "Total working links: %d\n" % (len(v)+len(e))
