@@ -1,4 +1,5 @@
 from __future__ import print_function
+import urlparse
 import urllib2, lister, sgmllib
 import re
 
@@ -50,6 +51,9 @@ def read_page(url):
         return parser
 
     except sgmllib.SGMLParseError:
+        t = open("invalids.txt", 'ab+')
+        print(url, file=t)
+        t.close()
         four04.append(url)
         return
 
@@ -66,6 +70,8 @@ def local_full_url(url):
 
 def strip_url(u):
     """ """
+    #temp_url = urlparse.urlparse(u)
+    #fixed_url = urlparse.unparse()
     temp_url = u.split('#', 1)[0]
     temp_url = temp_url.split('?', 1)[0]
     if len(temp_url) > 3 and temp_url[0] == 'w' and temp_url[1] == 'w' and temp_url[2] == 'w':
@@ -79,7 +85,10 @@ def filter_urls(p):
     if p is None: return
 
     for url in p.urls:
+        print("URL", url)
         f_url = strip_url(url)
+        #f_url = urlparse.urlparse(url)
+        print("fURL", f_url)
         if f_url:
             if local_url(f_url):
                 internal.append(base+f_url[1:])
@@ -101,12 +110,14 @@ def generate_reports(e, v, f04, t):
     print(e, file=f_external)
     print(v, file=f_visited)
 
+    sites = len(v)+len(e)
+
     s = "Internal sites: %d\n" % len(v)
     for key, val in t.iteritems():
         s += "\t %s: %d\n" % (key, len(val))
     s += "External sites: %d\n" % len(e)
     s += "404's: %d\n" % len(f04)
-    s += "Total working links: %d\n" % (len(v)+len(e))
+    s += "Total working links: %d\n" % sites
 
     print(s, file=f_report)
 
