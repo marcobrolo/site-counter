@@ -24,10 +24,6 @@ def read_page(url):
     try:
         try:
             usock = urllib2.urlopen(url)
-        
-        #if usock.getcode() == 404:
-        #    four04.append(url)
-        #    return
         except urllib2.HTTPError as e:
             four04.append(url)
             print(e.code, " : ", url)
@@ -76,19 +72,20 @@ def filter_urls(p):
         if f_url:
             print(f_url)
             if local_url(f_url):
-                if f_url in internal:
-                    print("NO")
-                    no = open("NO.txt",'w')
-                    print("NO", file=no)
-                    no.close()
+                #if (base+f_url[1:]) in internal:
+                #    #Fix these
+                #    print("NO")
+                #    no = open("NO.txt",'w')
+                #    print("NO", file=no)
+                #    no.close()
 
                 internal.append(base+f_url[1:])
             elif local_full_url(f_url):
-                if f_url in internal:
-                    print ("NO")
-                    no = open("NO.txt",'w')
-                    print("NO", file=no)
-                    no.close()
+                #if f_url in internal:
+                #    print ("NO")
+                #    no = open("NO.txt",'w')
+                #    print("NO", file=no)
+                #    no.close()
                 internal.append(f_url)
 
             else:
@@ -105,11 +102,15 @@ def generate_reports(e, v, f04, t):
     f_visited = open('visited.txt', 'ab+')
     f_report = open('report.txt', 'ab+')
 
+
     print(e, file=f_external)
     print(v, file=f_visited)
     print(t)
 
     s = "Internal sites: %d\n" % len(v)
+    for k, v in t.iteritems():
+        s += "\t %s: %d\n" % (k, len(v))
+    s += "\t "
     s += "External sites: %d\n" % len(e)
     s += "404's: %d\n" % len(f04)
     s += "Total working links: %d\n" % (len(v)+len(e))
@@ -120,7 +121,8 @@ def generate_reports(e, v, f04, t):
     f_visited.close()
     f_report.close()
     
-if __name__ == "__main__":
+
+def main():
     parser = read_page(base)
     filter_urls(parser)
     internal, external, visited = remove_dupes()
@@ -142,4 +144,29 @@ if __name__ == "__main__":
     print (":",len(visited))
     print (";", len(external))
     print ("done")
+
+if __name__ == "__main__":
+    main()
+
+    """parser = read_page(base)
+    filter_urls(parser)
+    internal, external, visited = remove_dupes()
+    
+    while len(internal) > 0:
+        print("Internal: ",internal, len(internal))
+        print("external: ",external, len(external))
+        print("visited: ", visited, len(visited))
+        pages = map(read_page, internal)
+        
+        map(filter_urls, pages)
+        internal, external, visited = remove_dupes()
+        
+    generate_reports(external, visited, four04, types)
+
+    
+    for url in internal:
+        print (url)
+    print (":",len(visited))
+    print (";", len(external))
+    print ("done")"""
 
