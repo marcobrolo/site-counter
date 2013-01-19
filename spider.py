@@ -62,6 +62,7 @@ def organize_links(url, core, links):
 
 	queue.difference_update(visited)
 	queue.difference_update(errors)
+	queue.difference_update(parse_errors)
 
 def format_url(current_url, link):
 	""" Removes extra parameters from a URL and joins the parts together """
