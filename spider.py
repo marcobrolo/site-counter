@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 visited = set()
 external = set()
 errors = set()
+parse_errors = set()
 queue = set()
 types = {}
 
@@ -23,7 +24,11 @@ def crawl(url):
 
 		#If it is a site, extract the links from it
 		if 'text/html' in filetype:
-			soup = BeautifulSoup(page)
+			try:
+				soup = BeautifulSoup(page)
+			except:
+				parse_errors.add(url)
+				return
 			links = [tag['href'] for tag in soup.findAll('a', href=True) if "mailto:" not in tag['href']]
         
         #Keep count of how many different types of resources there are
@@ -62,10 +67,11 @@ def format_url(current_url, link):
 	""" Removes extra parameters from a URL and joins the parts together """
 	link = link.split('#', 1)[0]
 	link = link.split('?', 1)[0]
+	link = link.split(' ', 1)[0]
 	return urljoin(current_url, link)
 
 
-def generate_reports(ext, vis, err, typ):
+def generate_reports(ext, vis, err, typ, perr):
 	""" See title """
 	f_external = open('external.txt', 'ab+')
 	f_visited = open('visited.txt', 'ab+')
@@ -79,9 +85,10 @@ def generate_reports(ext, vis, err, typ):
 
 	s = "Internal sites: %d\n" % len(vis)
 	for key, val in typ.iteritems():
-		s += "\t %s: %d\n" % (key, len(val))
+		s += "\t %s: %d\n" % (key, val)
 	s += "External sites: %d\n" % len(ext)
 	s += "Error pages: %d\n" % len(err)
+	s += "Parsing errors: %d" % len(perr)
 	s += "Total working links: %d\n" % sites
 
 	print(s, file=f_report)
@@ -107,7 +114,7 @@ def main():
 			crawl(item)
 			print("Q: %d - V: %d - E: %d - B: %d" % (len(queue), len(visited), len(external), len(errors)))
 			print("Crawling: ", item)
-	generate_reports(external, visited, errors, types)
+	generate_reports(external, visited, errors, types, parse_errors)
 
 
 if __name__ == '__main__':
