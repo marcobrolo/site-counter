@@ -107,6 +107,7 @@ def main():
 			crawl(item)
 			print("Q: %d - V: %d - E: %d - B: %d" % (len(queue), len(visited), len(external), len(errors)))
 			print("Crawling: ", item)
+	generate_reports(external, visited, errors, types)
 
 
 if __name__ == '__main__':
