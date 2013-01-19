@@ -19,8 +19,6 @@ def crawl(url):
 		page = urllib2.urlopen(url)
 		links = []
 
-		page.getcode()
-
 		filetype = page.info().getheader('content-type')
 
 		#If it is a site, extract the links from it
