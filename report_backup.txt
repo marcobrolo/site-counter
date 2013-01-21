@@ -1,0 +1,70 @@
+Internal sites: 28824
+	 : 2
+	 text/xml: 14
+	 image/jpeg: 772
+	 application/pgp-keys: 4
+	 application/postscript: 586
+	 video/quicktime: 16
+	 image/png: 155
+	 model/vrml: 4
+	 application/x-sh: 12
+	 text/html;charset=utf-8: 21
+	 application/force-download: 2
+	 application/pdf: 8046
+	 video/x-m4v: 4
+	 application/vnd.openxmlformats-officedocument.presentationml.presentation: 2
+	 text/html; charset=utf-8; qs=0.9: 181
+	 text/x-java-source: 10
+	 video/mpeg: 65
+	 application/xml-dtd: 2
+	 text/html; charset=utf-8: 4128
+	 text/html; charset=ISO-8859-1: 7345
+	 image/svg+xml: 2
+	 application/x-msdownload: 4
+	 image/gif: 251
+	 application/x-httpd-cgi: 2
+	 application/x-bytecode.python: 6
+	 audio/x-wav: 3
+	 application/vnd.ms-excel: 52
+	 text/plain; charset=ISO-8859-1: 2431
+	 application/xslt+xml: 2
+	 image/tiff: 22
+	 application/x-compress: 7
+	 application/x-rar-compressed: 4
+	 image/x-portable-anymap: 4
+	 chemical/x-pdb: 6
+	 text/css; charset=utf-8: 74
+	 text/html; charset=UTF-8: 893
+	 application/xml: 26
+	 application/vnd.ms-powerpoint: 445
+	 application/xhtml+xml; charset=utf-8: 3
+	 audio/mpeg: 24
+	 text/plain; charset=utf-8: 105
+	 application/octet-stream: 13
+	 text/x-vcard: 4
+	 application/rdf+xml: 2
+	 image/bmp: 169
+	 text/plain: 102
+	 image/x-xfig: 4
+	 application/x-tar: 4
+	 application/x-gzip: 268
+	 audio/basic: 3
+	 text/html: 322
+	 text/plain; charset=UTF-8: 3
+	 application/json; charset=utf-8: 9
+	 application/xml; charset=utf-8: 7
+	 text/rtf: 10
+	 application/x-ms-publisher: 4
+	 text/html;charset=UTF-8: 1898
+	 video/x-msvideo: 91
+	 text/calendar: 2
+	 application/zip: 151
+	 audio/x-aiff: 3
+	 application/epub+zip: 6
+	 application/x-tex: 20
+	 text/css: 24
+	 application/msword: 33
+External sites: 8375
+Error pages: 5859
+Parsing errors: 472
+Total working links: 37199
