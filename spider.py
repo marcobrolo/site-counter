@@ -128,7 +128,7 @@ def generate_reports(ext, vis, err, typ, perr):
 
 def main():
 	if len(sys.argv) == 1:
-		print("Peter Z's website resource counter")
+		print("Peter Zenger's website resource counter")
 		print("Usage: %s [FULL_URL]" % sys.argv[0])
 		sys.exit(-1)
 
