@@ -3,91 +3,73 @@ import urllib2
 import sys
 import Queue
 import threading
+import time
 from urlparse import urlparse, urljoin
 from bs4 import BeautifulSoup
 
 types = {}
 
 MAX_THREADS = 5
-PROCESS_AMOUNT = 1
 
-class SetQueue(Queue.Queue):
-        def __init__(self):
-                Queue.Queue.__init__(self)
-                self.history = set()
-
-        def _put(self, item):
-                if item not in self.history:
-                        self.history.add(item)
-                        Queue.Queue._put(self, item)
-                        
-
-visited = SetQueue()
-external = SetQueue()
-errors = SetQueue()
-parse_errors = SetQueue()
-queue = SetQueue()
+visited = set()
+external = set()
+internal = set()
+errors = set()
+parse_errors = set()
+to_visit = Queue.Queue()
+to_parse = Queue.Queue()
 
 
 class crawl_thread (threading.Thread):
-        def __init__(self, queue=None):
-                threading.Thread.__init__(self)
-                self.q = queue
+	def __init__(self, visit, parse):
+		threading.Thread.__init__(self)
+		self.q = visit
+		self.out = parse
 
-        def run(self):
-                if self.q:
-                        for x in xrange(PROCESS_AMOUNT):
-                                try:
-                                        url = self.q.get_nowait()
-                                except Queue.Empty:
-                                        return
-                                
-                                print("Q: %d - V: %d - E: %d - B: %d" % (queue.qsize(), visited.qsize(), external.qsize(), errors.qsize()))
-                                crawl(url)
+	def run(self):
+
+		if self.q:
+			print("starting thread\n")
+			while True:
+				if self.q.qsize() > 0:
+					try:
+						url = self.q.get()
+						self.openurl(url)
+					except Queue.Empty:
+						pass 
+				time.sleep(1)
                         
-def crawl(url):
+	def openurl(self, url):
+		print("Visiting: %s" % url)
+		visited.add(url)
+		core = urlparse(url).netloc
+		try:
+			page = urllib2.urlopen(url)
+			filetype = page.info().getheader('content-type')
+			if 'text/html' in filetype:
+				try:
+					soup = BeautifulSoup(page)
+					page.close()
+					self.out.put((url, soup, core, filetype)) #Takes 1 argument, 4 given
+				except:
+					parse_errors.add(url)
+		except urllib2.HTTPError as e:
+			errors.add(url)
+		except urllib2.URLError as e:
+			errors.add(url)
+
+def parse(url, soup, core, filetype):
 	""" Gets all links from a URL and updates all of the sets """
-	print("VISITING: ", url)
-	visited.put(url)
-	core = urlparse(url).netloc
-	print(core)
-	try:
-		page = urllib2.urlopen(url)
-		print(page)
-		links = []
+	print("parsing %s" % url)
+	links = []
 
-		filetype = page.info().getheader('content-type')
+	links = [tag['href'] for tag in soup.findAll('a', href=True) if "mailto:" not in tag['href']]
 
+	if filetype not in types:
+		types[filetype] = 1
+	types[filetype] += 1
 
-		print(filetype)
-
-		#If it is a site, extract the links from it
-		if 'text/html' in filetype:
-			try:
-                                print("1")
-				soup = BeautifulSoup(page)
-				print("2")
-			except:
-				parse_errors.put(url)
-				return
-			links = [tag['href'] for tag in soup.findAll('a', href=True) if "mailto:" not in tag['href']]
-
-                page.close()
-
-                print(links)
-                
-                #Keep count of how many different types of resources there are
-		if filetype not in types:
-			types[filetype] = 1
-		types[filetype] += 1
-
-		organize_links(url, core, links)
-
-	except urllib2.HTTPError as e:
-		errors.put(url)
-	except urllib2.URLError as e:
-		errors.put(url)
-
+	organize_links(url, core, links)
 
 	
 def organize_links(url, core, links):
@@ -97,11 +79,13 @@ def organize_links(url, core, links):
 	links = [format_url(url, link) for link in links] # format_urls(url, links)
 
 	for link in links:
-                #if link not in visited and link not in errors and link not in parse_errors:
-                if core in link:
-                        queue.put(link)
-                else:
-                        external.put(link)
+   		#if link not in visited and link not in errors and link not in parse_errors:
+		if core in link:
+			if link not in visited and link not in internal and link not in errors and link not in parse_errors:
+				internal.add(link)
+				to_visit.put(link)
+		else:
+			external.add(link)
 
 def format_url(current_url, link):
 	""" Removes extra parameters from a URL and joins the parts together """
@@ -113,22 +97,27 @@ def format_url(current_url, link):
 
 def generate_reports(ext, vis, err, typ, perr):
 	""" See title """
+	print("Making Report")
+	print(ext)
+	print(vis)
+	print(err)
 	f_external = open('external.txt', 'ab+')
 	f_visited = open('visited.txt', 'ab+')
 	f_report = open('report.txt', 'ab+')
 
 
-	print(ext.history, file=f_external)
-	print(vis.history, file=f_visited)
+	print(ext, file=f_external)
+	print(vis, file=f_visited)
 
-	sites = len(vis.history)+len(ext.history)
+	sites = len(vis)+len(ext)
+	internal_sites = len(vis) - len(err)
 
-	s = "Internal sites: %d\n" % len(vis.history)
+	s = "Internal sites: %d\n" % internal_sites
 	for key, val in typ.iteritems():
 		s += "\t %s: %d\n" % (key, val)
-	s += "External sites: %d\n" % len(ext.history)
-	s += "Error pages: %d\n" % len(err.history)
-	s += "Parsing errors: %d\n" % len(perr.history)
+	s += "External sites: %d\n" % len(ext)
+	s += "Error pages: %d\n" % len(err)
+	s += "Parsing errors: %d\n" % len(perr)
 	s += "Total working links: %d\n" % sites
 
 	print(s, file=f_report)
@@ -144,19 +133,26 @@ def main():
 		sys.exit(-1)
 
 	threads = []
+	count = 0
 
-	
 	for site in sys.argv[1:]:
-		crawl(site)
-                
-		while not queue.empty():
-                        for i in xrange(MAX_THREADS):
-                                p = crawl_thread(queue)
-                                p.daemon = True
-                                p.start()
-                                threads.append(p)
+		to_visit.put(site)
 
-                        [thread.join() for thread in threads]
+		for i in xrange(MAX_THREADS):
+				p = crawl_thread(to_visit, to_parse)
+				p.daemon = True
+				p.start()
+				threads.append(p)
+        
+		while not to_visit.empty() or not to_parse.empty() or count < 5:
+			count += 1
+			try:
+				s = to_parse.get_nowait()
+				parse(s[0], s[1], s[2], s[3])
+				print("Q: %d - V: %d - E: %d - B: %d" % (to_visit.qsize(), len(visited), len(external), len(errors)))
+			except Queue.Empty:
+				print("Empty queue, waiting 1")
+				time.sleep(1)
 		
 	generate_reports(external, visited, errors, types, parse_errors)
 
